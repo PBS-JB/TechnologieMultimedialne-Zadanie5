@@ -29,7 +29,6 @@ $clientIp = get_client_ip();
 $browser = get_filtered_browser($_SERVER['HTTP_USER_AGENT'] ?? null);
 
 if ($record && $record['password'] === $pass) {
-    // Pkt 6.a, 6.b: Poprawne uwierzytelnienie
     $_SESSION['loggedin'] = true;
     $_SESSION['user_id'] = (int)$record['id'];
     $_SESSION['username'] = $record['username'];
@@ -41,11 +40,9 @@ if ($record && $record['password'] === $pass) {
         $_SESSION['avatar'] = 'media/default_avatar.png';
     }
 
-    // Pkt 6.c: Upewnienie się, że katalog macierzysty użytkownika istnieje i zapisanie ścieżki w sesji
     $userHome = getUserHomeDir($record['username']);
     $_SESSION['user_home'] = $userHome;
 
-    // Pkt 6.b: Rejestracja pomyślnego logowania w tabeli goscieportalu
     $note = "Pomyślne logowanie: " . $record['username'] . " [" . $browser . "]";
     $stmt = mysqli_prepare(
         $link,
@@ -61,7 +58,6 @@ if ($record && $record['password'] === $pass) {
     header('Location: index.php');
     exit();
 } else {
-    // Pkt 6.b: Nieudana próba logowania - rejestracja w goscieportalu
     $failNote = "Błędne logowanie: " . $user . " [" . $browser . "]";
     $stmt = mysqli_prepare(
         $link,

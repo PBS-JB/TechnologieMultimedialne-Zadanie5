@@ -13,10 +13,8 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">  
 	<meta name="description" content="Rejestracja nowego użytkownika MyCloud">
-	<meta name="author" content="Jakub Baka">
-	<title>MyCloud - Rejestracja | Jakub Baka</title>
+	<title>MyCloud - Rejestracja</title>
 	
-	<!-- Bootstrap 5 CSS -->
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap5.min.css">
 	<link rel="stylesheet" type="text/css" href="twoj_css.css">
@@ -57,7 +55,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 						</div>
 					<?php endif; ?>
 
-					<!-- Formularz rejestracji (Pkt 6.a, 6.c) -->
 					<form action="add.php" method="post" enctype="multipart/form-data" id="registerForm" onsubmit="return validateRegisterForm()">
 						<div class="mb-3">
 							<label for="user" class="form-label">Nazwa użytkownika (Login)</label>
@@ -111,7 +108,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 	<?php include 'footer.php'; ?>
 
 	<script type="text/javascript">
-		// Dynamiczny podgląd awatara przed wysłaniem
 		function previewAvatar(input) {
 			if (input.files && input.files[0]) {
 				const reader = new FileReader();
@@ -122,7 +118,6 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
 			}
 		}
 
-		// Walidacja zgodności haseł w locie
 		$('#pass1, #pass2').on('keyup', function() {
 			const p1 = $('#pass1').val();
 			const p2 = $('#pass2').val();

@@ -4,7 +4,6 @@ session_start();
 
 require_once 'db.php';
 
-// Weryfikacja sesji użytkownika
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     header('Location: login.php');
     exit();
@@ -15,10 +14,8 @@ if (empty($username)) {
     die("Błąd: Nieokreślony użytkownik sesji.");
 }
 
-// Katalog macierzysty użytkownika
 $userHomeDir = getUserHomeDir($username);
 
-// Pobranie podkatalogu docelowego (jeśli upload odbywa się wewnątrz podkatalogu)
 $targetSubdir = trim($_POST['target_subdir'] ?? ($_GET['dir'] ?? ''));
 $targetSubdir = str_replace(['..', '/', '\\'], '', $targetSubdir);
 
@@ -30,7 +27,6 @@ if (!empty($targetSubdir)) {
     }
 }
 
-// Upewnienie się, że katalog docelowy istnieje i ma uprawnienia zapisu
 if (!is_dir($targetDir)) {
     @mkdir($targetDir, 0777, true);
     @chmod($targetDir, 0777);
@@ -40,14 +36,12 @@ $statusMessage = '';
 $isSuccess = false;
 $uploadedFileName = '';
 
-// Weryfikacja czy plik został przesłany
 if (isset($_FILES['fileToUpload'])) {
     $uploadError = $_FILES['fileToUpload']['error'];
 
     if ($uploadError === UPLOAD_ERR_OK) {
         $originalName = basename($_FILES['fileToUpload']['name']);
         
-        // Zabezpieczenie przed znakami specjalnymi i null-byte
         $cleanName = preg_replace('/[\x00-\x1F\x7F\/\\\\]/', '', $originalName);
         if (empty($cleanName)) {
             $cleanName = 'plik_' . time();
@@ -55,14 +49,12 @@ if (isset($_FILES['fileToUpload'])) {
 
         $targetFile = $targetDir . '/' . $cleanName;
 
-        // Przeniesienie pliku tymczasowego do katalogu docelowego
         if (move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $targetFile)) {
             @chmod($targetFile, 0666);
             $isSuccess = true;
             $uploadedFileName = $cleanName;
             $statusMessage = "Plik " . htmlspecialchars($cleanName) . " został pomyślnie przesłany na dysk.";
         } else {
-            // Szczegółowa diagnostyka przyczyny
             if (!is_writable($targetDir)) {
                 $statusMessage = "Błąd: Brak uprawnień do zapisu w katalogu docelowym (" . htmlspecialchars(basename($targetDir)) . ").";
             } elseif (!file_exists($_FILES['fileToUpload']['tmp_name'])) {
@@ -86,7 +78,6 @@ if (isset($_FILES['fileToUpload'])) {
     $statusMessage = "Błąd: Nie odebrano żadnego pliku z formularza.";
 }
 
-// Obsługa żądań cURL / API
 $isAjaxOrCli = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
     || isset($_POST['raw']) || isset($_GET['raw'])
     || (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'));
@@ -96,7 +87,6 @@ if ($isAjaxOrCli) {
     exit();
 }
 
-// Powrót do index.php z komunikatem
 $returnTo = $_POST['return_to'] ?? '';
 if ($isSuccess && $returnTo === 'index') {
     $queryParams = ['msg' => 'uploaded', 'file' => $uploadedFileName];

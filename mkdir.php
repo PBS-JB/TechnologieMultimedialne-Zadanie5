@@ -4,7 +4,6 @@ session_start();
 
 require_once 'db.php';
 
-// Weryfikacja sesji użytkownika
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     header('Location: login.php');
     exit();
@@ -21,13 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $folderName = trim($_POST['folder_name'] ?? '');
 $currentDir = trim($_POST['current_dir'] ?? '');
 
-// Pkt 6.f.ii: Wewnątrz podkatalogów nie tworzymy dalszych podkatalogów
 if (!empty($currentDir)) {
     header('Location: index.php?dir=' . urlencode($currentDir) . '&error=nested_folders_not_allowed');
     exit();
 }
 
-// Walidacja nazwy folderu (tylko bezpieczne znaki, brak znaków specjalnych i ścieżek)
 $cleanFolderName = preg_replace('/[^\p{L}\p{N}_\-\s]/u', '', $folderName);
 $cleanFolderName = trim($cleanFolderName);
 
@@ -43,7 +40,6 @@ if (file_exists($targetPath)) {
     exit();
 }
 
-// Pkt 6.f.i: Utworzenie nowego podkatalogu za pomocą mkdir()
 if (@mkdir($targetPath, 0777, true)) {
     header('Location: index.php?msg=folder_created&folder=' . urlencode($cleanFolderName));
     exit();

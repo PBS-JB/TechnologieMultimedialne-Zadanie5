@@ -1,10 +1,3 @@
-/**
- * JavaScript dla Zadania 5: MyCloud - Dysk Sieciowy
- * Politechnika Bydgoska - Technologie Multimedialne
- * Jakub Baka
- */
-
-// Dynamiczne ładowanie nagłówka Navbar przez AJAX
 function myLoadHeader(retryCount = 0) {
     const $target = $('#myHeader');
     if (!$target.length) return;
@@ -33,7 +26,6 @@ function myLoadHeader(retryCount = 0) {
 }
 
 $(document).ready(function() {
-    // Obsługa drag-and-drop dla stref uploadu
     const $dropzone = $('.upload-dropzone');
     if ($dropzone.length) {
         $dropzone.on('dragover dragenter', function(e) {

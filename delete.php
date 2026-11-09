@@ -4,7 +4,6 @@ session_start();
 
 require_once 'db.php';
 
-// Weryfikacja sesji użytkownika
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     header('Location: login.php');
     exit();
@@ -19,7 +18,6 @@ if (empty($item)) {
     exit();
 }
 
-// Bezpieczne rozwiązanie ścieżki i blokada Path Traversal
 $safePath = resolveSafeUserPath($username, $subDir, $item);
 
 $returnUrl = 'index.php';
@@ -34,7 +32,6 @@ if ($safePath === null || !file_exists($safePath)) {
     exit();
 }
 
-// Upewniamy się, że użytkownik nie próbuje usunąć własnego katalogu domowego
 $homeDir = realpath(getUserHomeDir($username));
 if ($safePath === $homeDir) {
     $params['error'] = 'cannot_delete_home';
@@ -43,7 +40,6 @@ if ($safePath === $homeDir) {
 }
 
 if (is_file($safePath)) {
-    // Pkt 6.g.ii: Usuwanie pliku za pomocą unlink()
     if (@unlink($safePath)) {
         $params['msg'] = 'file_deleted';
         $params['item'] = basename($safePath);
@@ -51,7 +47,6 @@ if (is_file($safePath)) {
         $params['error'] = 'file_delete_failed';
     }
 } elseif (is_dir($safePath)) {
-    // Pkt 6.g.iii: Usuwanie podkatalogu (z uprzednim usunięciem wszystkich plików wewnątrz)
     if (removeDirectoryRecursive($safePath)) {
         $params['msg'] = 'folder_deleted';
         $params['item'] = basename($safePath);

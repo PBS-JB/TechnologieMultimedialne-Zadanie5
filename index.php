@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);  /* Ta linia musi być pierwsza */
+declare(strict_types=1);
 session_start();
 
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
@@ -17,7 +17,6 @@ $username = $_SESSION['username'] ?? 'user';
 $userHomeDir = getUserHomeDir($username);
 $_SESSION['user_home'] = $userHomeDir;
 
-// Pkt 6.e, 6.h: Obsługa nawigacji po podkatalogach (parametr dir)
 $currentSubdir = trim($_GET['dir'] ?? '');
 $currentSubdir = str_replace(['..', '/', '\\'], '', $currentSubdir);
 
@@ -29,13 +28,11 @@ if ($isInsideSubdir) {
     if ($resolvedDir !== null && is_dir($resolvedDir)) {
         $currentDir = $resolvedDir;
     } else {
-        // Próba wejścia do nieistniejącego lub niedozwolonego katalogu - powrót do katalogu głównego
         header('Location: index.php?error=invalid_dir');
         exit();
     }
 }
 
-// Odczyt zawartości bieżącego katalogu (Pkt 6.d, 6.e)
 $subdirectories = [];
 $files = [];
 
@@ -50,7 +47,6 @@ if (is_dir($currentDir)) {
             $fullPath = $currentDir . '/' . $entry;
 
             if (is_dir($fullPath)) {
-                // Podkatalog
                 $itemCount = 0;
                 $dirScan = @scandir($fullPath);
                 if ($dirScan !== false) {
@@ -63,7 +59,6 @@ if (is_dir($currentDir)) {
                     'modified' => date('Y-m-d H:i', filemtime($fullPath))
                 ];
             } elseif (is_file($fullPath)) {
-                // Plik
                 $size = filesize($fullPath);
                 $ext = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
                 $category = getFileCategory($entry);
@@ -82,10 +77,8 @@ if (is_dir($currentDir)) {
     }
 }
 
-// Pobranie statystyk całej chmury użytkownika
 $stats = getUserStorageStats($username);
 
-// Preferowany tryb widoku (Grid kafelki / Tabela lista)
 $currentView = $_GET['view'] ?? ($_SESSION['cloud_view'] ?? 'grid');
 if (in_array($currentView, ['grid', 'table'], true)) {
     $_SESSION['cloud_view'] = $currentView;
@@ -99,15 +92,12 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">  
 	<meta name="description" content="MyCloud - Dysk sieciowy w chmurze">
-	<meta name="author" content="Jakub Baka">
-	<title>Mój Dysk (MyCloud) | Jakub Baka</title>
+	<title>Mój Dysk (MyCloud)</title>
 	
-	<!-- Bootstrap 5 CSS & DataTables -->
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap5.min.css">
 	<link rel="stylesheet" type="text/css" href="twoj_css.css">
 	
-	<!-- Skrypty JS -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 	<script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
 	<script type="text/javascript" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
@@ -136,7 +126,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 	<main class="py-4"> 
 		<div class="container-fluid px-lg-4">
 			
-			<!-- Pasek informacyjny i komunikaty zwrotne -->
 			<?php if (isset($_GET['msg'])): ?>
 				<?php $m = $_GET['msg']; ?>
 				<?php if ($m === 'uploaded'): ?>
@@ -177,7 +166,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 				</div>
 			<?php endif; ?>
 
-			<!-- Nagłówek dysku i statystyki -->
 			<div class="row align-items-center mb-4 g-3">
 				<div class="col-12 col-md-auto me-auto">
 					<div class="d-flex align-items-center">
@@ -186,7 +174,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 						</div>
 						<div>
 							<h1 class="h3 fw-bold mb-0 text-light">Mój Dysk Sieciowy</h1>
-							<!-- Ścieżka nawigacyjna (Breadcrumb) -->
 							<nav aria-label="breadcrumb">
 								<ol class="breadcrumb mb-0 small">
 									<li class="breadcrumb-item">
@@ -205,7 +192,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 					</div>
 				</div>
 
-				<!-- Liczniki przestrzeni dyskowej -->
 				<div class="col-12 col-md-auto">
 					<div class="d-flex flex-wrap gap-2 align-items-center">
 						<span class="badge bg-coffee-surface border-coffee text-light p-2 small">
@@ -220,10 +206,8 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 					</div>
 				</div>
 
-				<!-- Przyciski akcji: Upload, Nowy folder, Przełącznik widoku -->
 				<div class="col-12 col-md-auto d-flex flex-wrap gap-2">
 					
-					<!-- Pkt 6.h.ii, 6.h.iii: Przycisk Poziom wyżej (wyświetlany tylko w podkatalogu) -->
 					<?php if ($isInsideSubdir): ?>
 						<a href="index.php" class="btn btn-outline-warning btn-sm d-flex align-items-center" title="Wróć do katalogu macierzystego">
 							<img src="media/menu_icons/arrow-up.svg" height="16" class="me-1 filter-white" alt="">
@@ -231,7 +215,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 						</a>
 					<?php endif; ?>
 
-					<!-- Pkt 6.f.i, 6.f.ii: Ikona i przycisk Nowy podkatalog (wyświetlany tylko w katalogu macierzystym) -->
 					<?php if (!$isInsideSubdir): ?>
 						<button type="button" class="btn btn-outline-coffee btn-sm d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#newFolderModal">
 							<img src="media/menu_icons/folder-plus.svg" height="16" class="me-1 filter-accent" alt="">
@@ -239,13 +222,11 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 						</button>
 					<?php endif; ?>
 
-					<!-- Pkt 6.i, 6.j: Przycisk przesyłania plików -->
 					<button type="button" class="btn btn-coffee btn-sm d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#uploadModal">
 						<img src="media/menu_icons/upload.svg" height="16" class="me-1 filter-white" alt="">
 						Wyślij plik
 					</button>
 
-					<!-- Pkt 8.a: Przełącznik widoku (Kafelki / Tabela) -->
 					<div class="btn-group btn-group-sm">
 						<a href="?<?= http_build_query(array_merge($_GET, ['view' => 'grid'])) ?>" class="btn <?= $currentView === 'grid' ? 'btn-accent text-dark fw-bold' : 'btn-outline-secondary text-light' ?>" title="Widok kafelków z miniaturami i playerami">
 							Kafelki
@@ -258,7 +239,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 				</div>
 			</div>
 
-			<!-- SEKCJA PODKATALOGÓW (Pkt 6.d, 6.e, 6.h) -->
 			<?php if (!empty($subdirectories)): ?>
 				<div class="mb-4">
 					<h2 class="h6 text-muted text-uppercase fw-bold letter-spacing-1 mb-3">Katalogi</h2>
@@ -267,7 +247,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 							<div class="col">
 								<div class="card bg-coffee-dark border-coffee card-hover h-100 shadow-sm">
 									<div class="card-body p-3 d-flex align-items-center justify-content-between">
-										<!-- Kliknięcie nazwy podkatalogu przenosi do niego (Pkt 6.e.ii, 6.h.i) -->
 										<a href="index.php?dir=<?= urlencode($dir['name']) ?>" class="d-flex align-items-center text-decoration-none text-light text-truncate me-2">
 											<div class="folder-icon-box me-3">
 												<img src="media/menu_icons/folder.svg" width="28" height="28" class="filter-accent" alt="">
@@ -277,7 +256,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 												<small class="text-muted"><?= $dir['item_count'] ?> elementów</small>
 											</div>
 										</a>
-										<!-- Ikona usuwania podkatalogu (Pkt 6.g) -->
 										<a href="delete.php?item=<?= urlencode($dir['name']) ?>&dir=<?= urlencode($currentSubdir) ?>" 
 										   class="btn btn-sm btn-outline-danger p-1 border-0" 
 										   onclick="return confirm('Czy na pewno chcesz usunąć katalog \'<?= htmlspecialchars(addslashes($dir['name'])) ?>\' i wszystkie znajdujące się w nim pliki?');" 
@@ -292,7 +270,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 				</div>
 			<?php endif; ?>
 
-			<!-- SEKCJA PLIKÓW (Pkt 6.d, 6.e, 6.k, 8.a) -->
 			<div class="mb-4">
 				<div class="d-flex justify-content-between align-items-center mb-3">
 					<h2 class="h6 text-muted text-uppercase fw-bold letter-spacing-1 mb-0">
@@ -302,7 +279,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 				</div>
 
 				<?php if (empty($files) && empty($subdirectories)): ?>
-					<!-- Pkt 6.d.ii: Informacja o pustym katalogu -->
 					<div class="card bg-coffee-dark border-coffee text-center py-5 shadow-sm">
 						<div class="card-body">
 							<img src="media/menu_icons/cloud.svg" width="64" height="64" class="filter-muted mb-3 opacity-50" alt="">
@@ -316,7 +292,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 					</div>
 				<?php elseif ($currentView === 'grid'): ?>
 
-					<!-- =================== TRYB 1: KAFELKI Z MULTIMEDIAMI (Pkt 6.k, 8.a.ii) =================== -->
 					<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
 						<?php foreach ($files as $file): 
 							$viewUrl = 'view.php?file=' . urlencode($file['name']) . ($isInsideSubdir ? '&dir=' . urlencode($currentSubdir) : '');
@@ -326,25 +301,21 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 							<div class="col">
 								<div class="card bg-coffee-dark border-coffee card-hover h-100 shadow-sm file-card">
 									
-									<!-- Strefa podglądu multimediów w zależności od kategorii -->
 									<div class="file-card-preview bg-black d-flex align-items-center justify-content-center position-relative overflow-hidden">
 										
 										<?php if ($file['category'] === 'image'): ?>
-											<!-- Plik graficzny: miniatura, po kliknięciu pełny rozmiar w Lightbox (Pkt 6.k.iv, 8.a.ii) -->
 											<img src="<?= $viewUrl ?>" alt="<?= htmlspecialchars($file['name']) ?>" class="img-fluid file-img-thumb" onclick="openLightbox('<?= $viewUrl ?>', '<?= htmlspecialchars(addslashes($file['name'])) ?>')" title="Kliknij, aby otworzyć obraz w pełnym rozmiarze">
 											<div class="preview-overlay">
 												<span class="badge bg-dark bg-opacity-75 text-light small">Powiększ</span>
 											</div>
 
 										<?php elseif ($file['category'] === 'video'): ?>
-											<!-- Odtwarzacz MP4 / Wideo HTML5 bez autoplay (Pkt 6.k.iv) -->
 											<video controls preload="metadata" class="w-100 file-video-player">
 												<source src="<?= $viewUrl ?>" type="video/<?= $file['ext'] === 'mp4' ? 'mp4' : 'webm' ?>">
 												Twoja przeglądarka nie wspiera tagu wideo.
 											</video>
 
 										<?php elseif ($file['category'] === 'audio'): ?>
-											<!-- Odtwarzacz MP3 / Audio HTML5 bez autoplay (Pkt 6.k.iv) -->
 											<div class="w-100 p-2 text-center">
 												<div class="audio-icon-box mb-2">
 													<img src="media/menu_icons/star.svg" width="32" height="32" class="filter-accent" alt="">
@@ -356,7 +327,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 											</div>
 
 										<?php elseif ($file['category'] === 'pdf'): ?>
-											<!-- Dokument PDF: ikona i szybki podgląd w nowej karcie -->
 											<div class="text-center p-3">
 												<div class="doc-icon-badge bg-danger text-light mb-2">PDF</div>
 												<a href="<?= $viewUrl ?>" target="_blank" class="btn btn-sm btn-outline-light">
@@ -365,7 +335,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 											</div>
 
 										<?php else: ?>
-											<!-- Pozostałe pliki: ikona formatu (Pkt 6.k.iv, 8.a.iii) -->
 											<div class="text-center p-3">
 												<span class="badge bg-secondary fs-6 text-uppercase mb-2"><?= htmlspecialchars($file['ext']) ?></span>
 												<div class="text-muted small">Plik binarny</div>
@@ -374,7 +343,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 
 									</div>
 
-									<!-- Informacje o pliku i stopka karty -->
 									<div class="card-body p-3 d-flex flex-column justify-content-between">
 										<div class="mb-2">
 											<div class="d-flex align-items-start justify-content-between">
@@ -388,7 +356,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 											</div>
 										</div>
 
-										<!-- Przyciski akcji: Pobierz (Download) oraz Usuń (Pkt 6.g, 6.k) -->
 										<div class="d-flex justify-content-between align-items-center pt-2 border-top border-coffee">
 											<a href="<?= $downloadUrl ?>" class="btn btn-sm btn-outline-info d-flex align-items-center" title="Ściągnij na dysk lokalny">
 												<img src="media/menu_icons/download.svg" height="14" class="me-1 filter-white" alt="">
@@ -413,7 +380,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 
 				<?php else: ?>
 
-					<!-- =================== TRYB 2: TABELA SZCZEGÓŁOWA (Pkt 8.a.i, 8.a.iv) =================== -->
 					<div class="card bg-coffee-dark border-coffee shadow-sm">
 						<div class="card-body p-3">
 							<div class="table-responsive">
@@ -469,7 +435,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 		</div>
 	</main>
 
-	<!-- MODAL: Nowy podkatalog (Pkt 6.f.i) -->
 	<?php if (!$isInsideSubdir): ?>
 		<div class="modal fade" id="newFolderModal" tabindex="-1" aria-labelledby="newFolderModalLabel" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered">
@@ -500,7 +465,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 		</div>
 	<?php endif; ?>
 
-	<!-- MODAL: Przesyłanie pliku (Pkt 6.i, 6.j) -->
 	<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered">
 			<div class="modal-content bg-coffee-dark border-coffee text-light">
@@ -531,7 +495,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 		</div>
 	</div>
 
-	<!-- MODAL: Lightbox dla obrazów w pełnym rozmiarze (Pkt 6.k.iv) -->
 	<div class="modal fade" id="lightboxModal" tabindex="-1" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered modal-xl">
 			<div class="modal-content bg-coffee-dark border-coffee text-light">
@@ -555,7 +518,6 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 	<?php include 'footer.php'; ?>
 
 	<script type="text/javascript">
-		// Funkcja otwierająca obraz w pełnym rozmiarze w oknie Lightbox (Pkt 6.k.iv)
 		function openLightbox(imageUrl, title) {
 			$('#lightboxImg').attr('src', imageUrl);
 			$('#lightboxTitle').text(title);
@@ -566,74 +528,3 @@ if (in_array($currentView, ['grid', 'table'], true)) {
 	</script>
 </body>
 </html>
-<?php
-/**
- * ====================================================================================================
- * MATERIAŁ TEORETYCZNY I OPRACOWANIE WYNIKÓW BADAWCZYCH DO SPRAWOZDANIA (ZADANIE 5 - MyCloud)
- * Politechnika Bydgoska - Wydział Telekomunikacji, Informatyki i Elektrotechniki
- * Kierunek: Informatyka Stosowana | Przedmiot: Technologie Multimedialne
- * Autor: Jakub Baka
- * ====================================================================================================
- * 
- * 1. CHARAKTERYSTYKA I PORÓWNANIE USŁUG DYSKÓW SIECIOWYCH (STORAGE CLOUD)
- * ----------------------------------------------------------------------------------------------------
- * - Apple iCloud: Ściśle zintegrowany z ekosystemem iOS/macOS. Oferuje bezpłatnie 5 GB przestrzeni.
- *   Wykorzystuje zaawansowaną synchronizację iCloud Drive, synchronizację zdjęć, kopie urządzeń oraz pęk kluczy.
- *   Formaty multimedialne są zoptymalizowane pod kodeki Apple (HEIC, Apple ProRes, ALAC).
- * - Google One (Dysk Google): Zapewnia 15 GB darmowej przestrzeni dzielonej pomiędzy Gmail, Google Drive i Zdjęcia.
- *   Charakteryzuje się rozbudowanym API (Google Drive REST API), możliwością współedycji dokumentów w czasie
- *   rzeczywistym (Google Docs/Sheets) oraz bardzo wydajnym mechanizmem transkodowania wideo w locie.
- * - Microsoft OneDrive: Standardowo 5 GB w wersji bezpłatnej, zintegrowany z pakietem Microsoft 365.
- *   Wyróżnia się technologią "Files On-Demand" (pliki na żądanie) w systemie Windows oraz zaawansowanym
- *   bezpieczeństwem (Personal Vault z autoryzacją wieloskładnikową 2FA).
- * - Amazon AWS (Amazon S3 / WorkDocs): Profesjonalna usługa obiektowego przechowywania danych (Object Storage)
- *   o gwarantowanej trwałości 99.999999999% (11 dziewiątek). Umożliwia wersjonowanie obiektów, polityki
- *   cyklu życia (przenoszenie do tańszych warstw S3 Glacier) oraz precyzyjną kontrolę dostępu za pomocą IAM i ACL.
- * 
- * 2. ARCHITEKTURA I DZIAŁANIE ROZPROSZONEGO SYSTEMU KONTROLI WERSJI GIT
- * ----------------------------------------------------------------------------------------------------
- * - System Git został stworzony w 2005 roku przez Linusa Torvaldsa na potrzeby rozwoju jądra systemu Linux.
- * - Istotą architektury rozproszonej (DVCS) jest fakt, że każdy węzeł (lokalny komputer programisty) posiada
- *   pełną kopię repozytorium wraz z całą jego historią zmian, gałęziami (branches) i tagami.
- * - Różnica względem systemów scentralizowanych (SVN, CVS):
- *   W SVN awaria centralnego serwera paraliżuje pracę zespołu i uniemożliwia zatwierdzanie zmian. W Git każda
- *   operacja (commit, log, diff, branch) wykonuje się lokalnie w ułamku sekundy, a synchronizacja z serwerem
- *   zewnętrznym (remote - np. GitHub, GitLab) odbywa się poprzez operacje 'push' i 'fetch/pull'.
- * - Bezpieczeństwo integralności: Git identyfikuje każdy obiekt (commit, blob, tree) za pomocą sumy kontrolnej
- *   SHA-1 / SHA-256. Uniemożliwia to niezauważoną modyfikację zawartości lub historii projektu.
- * 
- * 3. MECHANIZMY PRZESYŁANIA PLIKÓW W PHP I PROTOKOLE HTTP (RFC 1867)
- * ----------------------------------------------------------------------------------------------------
- * - Formularz wysyłający pliki musi posiadać metodę POST oraz atrybut enctype="multipart/form-data".
- *   Wówczas ciało żądania HTTP dzielone jest na sekcje rozdzielone unikalnym separatorem (boundary).
- * - Serwer HTTP i interpreter PHP odbierają strumień danych i automatycznie zapisują przesłany plik w katalogu
- *   tymczasowym systemu operacyjnego (np. /tmp) pod losową nazwą, wypełniając superglobalną tablicę $_FILES.
- * - Przeniesienie pliku do miejsca docelowego realizowane jest funkcją move_uploaded_file(), która weryfikuje,
- *   czy dany plik rzeczywiście pochodzi z mechanizmu przesyłania HTTP, zapobiegając atakom typu LFI.
- * - Kluczowe dyrektywy konfiguracyjne php.ini:
- *   a) file_uploads = On (włączenie obsługi uploadu)
- *   b) upload_max_filesize (maksymalny rozmiar pojedynczego przesyłanego pliku, np. 64M)
- *   c) post_max_size (maksymalny rozmiar całego żądania POST - musi być większy niż upload_max_filesize)
- *   d) max_file_uploads (maksymalna liczba jednocześnie przesyłanych plików w jednym żądaniu)
- *   e) memory_limit oraz max_execution_time (zasoby pamięciowe i czasowe interpretera PHP)
- * 
- * 4. BEZPIECZEŃSTWO SYSTEMU PLIKÓW: ZAPOBIEGANIE ATAKOM DIRECTORY TRAVERSAL (PATH TRAVERSAL)
- * ----------------------------------------------------------------------------------------------------
- * - Zagrożenie: Użytkownik przesyła zmanipulowaną ścieżkę w parametrze (np. ../../../etc/passwd lub ../inny_user).
- * - Ochrona zaimplementowana w aplikacji MyCloud:
- *   a) Funkcja resolveSafeUserPath(): rygorystyczne oczyszczanie nazw z sekwencji '../', '..\' i separatorów katalogów.
- *   b) Walidacja za pomocą funkcji realpath() interpretera PHP: pobierana jest rzeczywista, kanoniczna ścieżka
- *      w systemie plików, a następnie weryfikowane jest, czy zaczyna się ona od ścieżki katalogu domowego użytkownika.
- *   c) Izolacja uprawnień: użytkownik sesyjny posiada dostęp wyłącznie do drzewa katalogów o korzeniu w /z5/{username}/.
- * 
- * 5. PROBLEM BUFOROWANIA PRZEZ PROGRAMY FTP I PRZEGLĄDARKI INTERNETOWE
- * ----------------------------------------------------------------------------------------------------
- * - Klienci FTP (np. Total Commander): Przy pierwszym wejściu buforują listę zawartości (NLST/LIST). Wychodzą
- *   z założenia, że tylko dany klient modyfikuje strukturę plików. Aby wymusić odświeżenie, należy zastosować
- *   ponowne nawiązanie połączenia lub skrót klawiszowy ponownego odczytu (R/F5).
- * - Przeglądarki internetowe: Buforują zasoby graficzne i multimedialne. W aplikacji zaimplementowano nagłówki
- *   Cache-Control, unikalne sygnatury czasowe zapytań AJAX (_t=timestamp) oraz strumieniowanie przez view.php
- *   z obsługą zapytań częściowych (HTTP 206 Partial Content i nagłówków Range).
- * ====================================================================================================
- */
-?>

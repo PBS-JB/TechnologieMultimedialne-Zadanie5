@@ -1,12 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- * Konfiguracja bazy danych i funkcje pomocnicze dla Zadania 5: MyCloud
- * Politechnika Bydgoska - Technologie Multimedialne
- * Jakub Baka
- */
-
 function getDbConnection(): mysqli {
     $host = 'mysql.mikr.us';
     $user = 'viktor229';
@@ -23,9 +17,6 @@ function getDbConnection(): mysqli {
     return $link;
 }
 
-/**
- * Zwraca rzeczywisty adres IP klienta (obsługuje nagłówki Cloudflare, reverse proxy oraz połączenia bezpośrednie)
- */
 function get_client_ip(): string {
     $headers = [
         'HTTP_CF_CONNECTING_IP',
@@ -47,9 +38,6 @@ function get_client_ip(): string {
     return $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
 }
 
-/**
- * Filtrowanie nazwy i wersji przeglądarki internetowej z nagłówka User-Agent
- */
 function get_filtered_browser(?string $userAgent = null): string {
     $userAgent = $userAgent ?? ($_SERVER['HTTP_USER_AGENT'] ?? 'Nieznana');
 
@@ -90,9 +78,6 @@ function get_filtered_browser(?string $userAgent = null): string {
     return 'Inna (' . htmlspecialchars(substr($userAgent, 0, 32)) . ')';
 }
 
-/**
- * Upewnia się, że tabele users i goscieportalu istnieją
- */
 function ensureMyCloudTables(mysqli $link): void {
     $createUsers = "CREATE TABLE IF NOT EXISTS `users` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -117,9 +102,6 @@ function ensureMyCloudTables(mysqli $link): void {
     mysqli_query($link, $createGuests);
 }
 
-/**
- * Zwraca ścieżkę do katalogu macierzystego użytkownika na serwerze (Pkt 6.c)
- */
 function getUserHomeDir(string $username): string {
     $cleanUser = preg_replace('/[^a-zA-Z0-9_\-]/', '', $username);
     if (empty($cleanUser)) {
@@ -138,10 +120,6 @@ function getUserHomeDir(string $username): string {
     return $home;
 }
 
-/**
- * Bezpiecznie rozwiązuje ścieżkę do pliku lub podkatalogu użytkownika.
- * Chroni przed Directory Traversal (zakazuje wychodzenia poza katalog macierzysty użytkownika).
- */
 function resolveSafeUserPath(string $username, string $subdir = '', string $filename = ''): ?string {
     $homeDir = getUserHomeDir($username);
     $realHome = realpath($homeDir);
@@ -149,11 +127,9 @@ function resolveSafeUserPath(string $username, string $subdir = '', string $file
         return null;
     }
 
-    // Sanityzacja nazwy podkatalogu (dozwolone litery, cyfry, podkreślenie, myślnik, spacja)
     $cleanSubdir = trim($subdir);
     $cleanSubdir = str_replace(['..', '/', '\\'], '', $cleanSubdir);
 
-    // Sanityzacja nazwy pliku
     $cleanFilename = trim($filename);
     $cleanFilename = basename($cleanFilename);
 
@@ -165,20 +141,17 @@ function resolveSafeUserPath(string $username, string $subdir = '', string $file
         $targetPath .= '/' . $cleanFilename;
     }
 
-    // Jeśli plik/katalog już istnieje, sprawdzamy realpath
     if (file_exists($targetPath)) {
         $realTarget = realpath($targetPath);
         if ($realTarget === false) {
             return null;
         }
-        // Upewniamy się, że ścieżka zaczyna się od katalogu domowego użytkownika
         if ($realTarget === $realHome || str_starts_with($realTarget, $realHome . DIRECTORY_SEPARATOR)) {
             return $realTarget;
         }
-        return null; // Próba wyjścia poza katalog domowy
+        return null;
     }
 
-    // Jeśli cel jeszcze nie istnieje (np. przy tworzeniu folderu lub uploadzie), sprawdzamy czy katalog nadrzędny leży w home
     $parentDir = dirname($targetPath);
     if (file_exists($parentDir)) {
         $realParent = realpath($parentDir);
@@ -194,9 +167,6 @@ function resolveSafeUserPath(string $username, string $subdir = '', string $file
     return null;
 }
 
-/**
- * Formatowanie rozmiaru pliku do czytelnej postaci (B, KB, MB, GB)
- */
 function formatFileSize(int $bytes): string {
     if ($bytes <= 0) return '0 B';
     $units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -206,9 +176,6 @@ function formatFileSize(int $bytes): string {
     return $val . ' ' . $units[$i];
 }
 
-/**
- * Kategoryzacja typu pliku po rozszerzeniu na potrzeby odtwarzaczy i ikon
- */
 function getFileCategory(string $filename): string {
     $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 
@@ -231,9 +198,6 @@ function getFileCategory(string $filename): string {
     return 'other';
 }
 
-/**
- * Rekurencyjne usuwanie zawartości podkatalogu, a następnie samego podkatalogu (Pkt 6.g.iii)
- */
 function removeDirectoryRecursive(string $dir): bool {
     if (!is_dir($dir)) {
         return false;
@@ -260,9 +224,6 @@ function removeDirectoryRecursive(string $dir): bool {
     return @rmdir($dir);
 }
 
-/**
- * Pobiera łączne statystyki przestrzeni dyskowej użytkownika (ilość plików, katalogów, łączny rozmiar)
- */
 function getUserStorageStats(string $username): array {
     $homeDir = getUserHomeDir($username);
     $totalSize = 0;

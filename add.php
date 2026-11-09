@@ -13,13 +13,11 @@ if (empty($user) || empty($pass1) || empty($pass2)) {
     exit();
 }
 
-// Pkt 6.c.i: Weryfikacja dozwolonych znaków dla loginu (nazwa katalogu na serwerze)
 if (!preg_match('/^[a-zA-Z0-9_\-]{3,24}$/', $user)) {
     header('Location: rejestruj.php?error=invalid_username');
     exit();
 }
 
-// Zabezpieczenie przed kolizją z plikami i katalogami systemowymi portalu
 $reservedNames = [
     'media', 'avatars', 'css', 'js', 'fonts', 'images', 
     'index', 'login', 'logout', 'rejestruj', 'add', 
@@ -40,7 +38,6 @@ if ($pass1 !== $pass2) {
 $link = getDbConnection();
 ensureMyCloudTables($link);
 
-// Sprawdzenie czy użytkownik już istnieje w bazie danych
 $escapedUser = mysqli_real_escape_string($link, $user);
 $checkSql = "SELECT id FROM users WHERE username = '$escapedUser'";
 $checkResult = mysqli_query($link, $checkSql);
@@ -50,14 +47,12 @@ if ($checkResult && mysqli_num_rows($checkResult) > 0) {
     exit();
 }
 
-// Obsługa przesyłanego awatara
 $avatarPath = 'media/default_avatar.png';
 
 if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
     $fileTmpPath = $_FILES['avatar']['tmp_name'];
     $fileSize = $_FILES['avatar']['size'];
 
-    // Limit rozmiaru 2MB
     if ($fileSize > 2 * 1024 * 1024) {
         mysqli_close($link);
         header('Location: rejestruj.php?error=file_too_large');
@@ -96,7 +91,6 @@ if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
     }
 }
 
-// Zapis nowego użytkownika do bazy
 $escapedPass = mysqli_real_escape_string($link, $pass1);
 $escapedAvatar = mysqli_real_escape_string($link, $avatarPath);
 
@@ -105,7 +99,6 @@ $insertSql = "INSERT INTO users (username, password, avatar) VALUES ('$escapedUs
 if (mysqli_query($link, $insertSql)) {
     mysqli_close($link);
 
-    // Pkt 6.c: Utworzenie katalogu macierzystego o nazwie takiej, jak login użytkownika
     $userHomeDir = getUserHomeDir($user);
     if (!is_dir($userHomeDir)) {
         @mkdir($userHomeDir, 0777, true);

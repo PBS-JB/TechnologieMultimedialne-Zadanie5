@@ -4,7 +4,6 @@ session_start();
 
 require_once 'db.php';
 
-// Weryfikacja sesji użytkownika
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     http_response_code(403);
     die("Brak uprawnień. Zaloguj się do portalu.");
@@ -30,7 +29,6 @@ $fileSize = filesize($safeFilePath);
 $ext = strtolower(pathinfo($safeFilePath, PATHINFO_EXTENSION));
 
 $mimeTypes = [
-    // Obrazy
     'jpg'  => 'image/jpeg',
     'jpeg' => 'image/jpeg',
     'png'  => 'image/png',
@@ -38,16 +36,13 @@ $mimeTypes = [
     'webp' => 'image/webp',
     'svg'  => 'image/svg+xml',
     'ico'  => 'image/x-icon',
-    // Dźwięk
     'mp3'  => 'audio/mpeg',
     'wav'  => 'audio/wav',
     'ogg'  => 'audio/ogg',
     'm4a'  => 'audio/mp4',
-    // Wideo
     'mp4'  => 'video/mp4',
     'webm' => 'video/webm',
     'ogv'  => 'video/ogg',
-    // Dokumenty
     'pdf'  => 'application/pdf',
     'txt'  => 'text/plain; charset=utf-8',
     'html' => 'text/html; charset=utf-8',
@@ -60,7 +55,6 @@ while (ob_get_level() > 0) {
     ob_end_clean();
 }
 
-// Obsługa nagłówka Range (istotne dla przewijania odtwarzaczy HTML5 audio/wideo)
 $fp = fopen($safeFilePath, 'rb');
 if (!$fp) {
     http_response_code(500);
@@ -92,7 +86,7 @@ header("Content-Disposition: inline; filename=\"" . rawurlencode(basename($safeF
 header("Cache-Control: public, max-age=3600");
 
 fseek($fp, $start);
-$buffer = 1024 * 64; // 64KB chunki
+$buffer = 1024 * 64;
 while (!feof($fp) && ($pos = ftell($fp)) <= $end) {
     if ($pos + $buffer > $end) {
         $buffer = $end - $pos + 1;

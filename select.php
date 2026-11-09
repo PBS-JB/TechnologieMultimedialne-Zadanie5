@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);  /* Ta linia musi być pierwsza */
+declare(strict_types=1);
 session_start();
 
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
@@ -12,11 +12,9 @@ require_once 'db.php';
 $username = $_SESSION['username'] ?? 'user';
 $homeDir = getUserHomeDir($username);
 
-// Pobranie bieżącego katalogu (opcjonalny parametr dir)
 $currentSubdir = trim($_GET['dir'] ?? '');
 $currentSubdir = str_replace(['..', '/', '\\'], '', $currentSubdir);
 
-// Lista dostępnych podkatalogów użytkownika do wyboru w formularzu
 $availableSubdirs = [];
 if (is_dir($homeDir)) {
     $items = scandir($homeDir);
@@ -37,7 +35,6 @@ if (is_dir($homeDir)) {
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">  
 	<title>Prześlij plik (Upload) | MyCloud</title>
 	
-	<!-- Bootstrap 5 CSS -->
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap5.min.css">
 	<link rel="stylesheet" type="text/css" href="twoj_css.css">
@@ -74,7 +71,6 @@ if (is_dir($homeDir)) {
 								Wybierz plik z lokalnego dysku komputera, aby przesłać go na serwer do Twojej chmury.
 							</p>
 
-							<!-- Formularz wyboru pliku zgodny z instrukcją (Pkt 6.i) -->
 							<form action="upload.php" method="post" enctype="multipart/form-data">
 								
 								<?php if (!empty($availableSubdirs)): ?>
